@@ -1,0 +1,35 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import VotingClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+
+# 1. Load Heart Disease Dataset (e.g., UCI Heart Disease Dataset)
+# url = "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+data = pd.read_csv('heart_data.csv') 
+X = data.drop('target', axis=1) # Features: age, sex, bp, cholesterol, etc.
+y = data['target']              # Target: 1 (disease), 0 (normal)
+
+# 2. Split into Training and Testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Initialize individual models (The "Ensemble Members")
+m1 = LogisticRegression(max_iter=1000)
+m2 = RandomForestClassifier(n_estimators=100)
+m3 = SVC(probability=True)
+
+# 4. Create the Ensemble Voting Classifier
+# We use 'soft' voting to average the predicted probabilities
+ensemble_model = VotingClassifier(
+    estimators=[('lr', m1), ('rf', m2), ('svc', m3)],
+    voting='soft',
+    weights=[1, 2, 1] # Giving more weight to the Random Forest
+)
+
+# 5. Train the ensemble and evaluate
+ensemble_model.fit(X_train, y_train)
+predictions = ensemble_model.predict(X_test)A
+
+print(f"Ensemble Diagnostic Accuracy: {accuracy_score(y_test, predictions):.2%}") 
